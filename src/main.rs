@@ -8,6 +8,9 @@ use clap::{Arg, App};
 use bincode::deserialize;
 use std::fs::File;
 use std::io::Read;
+use std::string::FromUtf8Error;
+use std::string::String;
+use std::mem;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct AcctV3 {
@@ -32,9 +35,16 @@ struct AcctV3 {
     ac_comm: [u8; 16],
 }
 
+impl AcctV3 {
+    fn command(self) -> Result<String, FromUtf8Error> {
+        String::from_utf8(self.ac_comm.to_vec())
+    }
+}
+
 // TODO: maybe use #[inline] here?
 fn expand_time(time: u16) -> u16 {
     let ret: u16 = (time & 0x1fff) << (((time >> 13) & 0x7) * 3);
+
     ret
 }
 
@@ -53,10 +63,12 @@ fn main() {
 
     let acct_file = matches.value_of("file").unwrap();
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf = [0u8; mem::size_of::<AcctV3>()];
     let mut file = File::open(acct_file).unwrap();
-    file.read(&mut buf).unwrap();
+    file.read_exact(&mut buf).unwrap();
     println!("{:?}", matches);
 
     let acct: AcctV3 = deserialize(&buf).unwrap();
+    println!("{:?}", acct);
+    println!("{:?}", acct.command());
 }
