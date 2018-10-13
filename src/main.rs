@@ -56,7 +56,7 @@ fn main() {
                       .arg(Arg::with_name("file")
                            .short("f")
                            .value_name("FILE")
-                           .help("IPv4 address to connect to")
+                           .help("acct file to parse")
                            .required(true)
                            .takes_value(true))
                       .get_matches();
