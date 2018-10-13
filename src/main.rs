@@ -1,9 +1,16 @@
+#[macro_use]
+extern crate serde_derive;
 extern crate clap;
+extern crate bincode;
 
 
 use clap::{Arg, App};
+use bincode::deserialize;
+use std::fs::File;
+use std::io::Read;
 
-struct Acct_V3 {
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+struct AcctV3 {
     ac_flag: u8,
     ac_version: u8,
     ac_tty: u16,
@@ -43,5 +50,13 @@ fn main() {
                            .required(true)
                            .takes_value(true))
                       .get_matches();
+
+    let acct_file = matches.value_of("file").unwrap();
+
+    let mut buf: Vec<u8> = Vec::new();
+    let mut file = File::open(acct_file).unwrap();
+    file.read(&mut buf).unwrap();
     println!("{:?}", matches);
+
+    let acct: AcctV3 = deserialize(&buf).unwrap();
 }

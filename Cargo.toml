@@ -5,3 +5,6 @@ authors = ["Josh Abraham <sinisterpatrician@gmail.com>"]
 
 [dependencies]
 clap = "2.32.0"
+bincode = "1.0.1"
+serde = "1.0.79"
+serde_derive = "1.0.79"
