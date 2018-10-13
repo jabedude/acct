@@ -3,6 +3,12 @@ extern crate clap;
 
 use clap::{Arg, App};
 
+// TODO: maybe use #[inline] here?
+fn expand_time(time: u16) -> u16 {
+    let ret: u16 = (time & 0x1fff) << (((time >> 13) & 0x7) * 3);
+    ret
+}
+
 fn main() {
     let matches = App::new("acct-rs")
                       .version("0.1")
