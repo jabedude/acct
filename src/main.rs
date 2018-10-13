@@ -52,6 +52,11 @@ fn expand_time(time: u16) -> u16 {
     ret
 }
 
+fn is_file_valid_acct(file: &File) -> bool {
+    file.metadata().unwrap()
+        .len() % mem::size_of::<AcctV3>() as u64 == 0
+}
+
 fn main() {
     let matches = App::new("acct-rs")
                       .version("0.1")
@@ -59,6 +64,7 @@ fn main() {
                       .about("Parse acct(2) files")
                       .arg(Arg::with_name("file")
                            .short("f")
+                           .long("file")
                            .value_name("FILE")
                            .help("acct file to parse")
                            .required(true)
@@ -69,6 +75,7 @@ fn main() {
 
     let mut buf = [0u8; mem::size_of::<AcctV3>()];
     let mut file = File::open(acct_file).unwrap();
+    println!("{}", is_file_valid_acct(&file));
     file.read_exact(&mut buf).unwrap();
     println!("{:?}", matches);
 
