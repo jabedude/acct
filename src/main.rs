@@ -36,8 +36,12 @@ struct AcctV3 {
 }
 
 impl AcctV3 {
-    fn command(self) -> Result<String, FromUtf8Error> {
+    fn command(&self) -> Result<String, FromUtf8Error> {
         String::from_utf8(self.ac_comm.to_vec())
+    }
+
+    fn is_valid(&self) -> bool {
+        self.ac_version == 3
     }
 }
 
