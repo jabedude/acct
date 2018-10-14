@@ -16,7 +16,7 @@ use std::string::String;
 use std::mem;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct AcctV3 {
+struct AcctV3Inner {
     ac_flag: u8,
     ac_version: u8,
     ac_tty: u16,
@@ -38,13 +38,44 @@ struct AcctV3 {
     ac_comm: [u8; 16],
 }
 
-impl AcctV3 {
+impl AcctV3Inner {
+    fn load_from_slice(buf: &[u8]) -> AcctV3Inner {
+        let acct: AcctV3Inner = deserialize(buf).unwrap();
+
+        acct
+    }
+
     fn command(&self) -> Result<String, FromUtf8Error> {
         String::from_utf8(self.ac_comm.to_vec())
     }
 
     fn is_valid(&self) -> bool {
         self.ac_version == 3
+    }
+}
+
+#[derive(Debug)]
+pub struct AcctV3 {
+    inner: AcctV3Inner,
+    pub username: String,
+    pub command: String,
+}
+
+impl AcctV3 {
+    fn from_slice(buf: &[u8]) -> AcctV3 {
+        let inner = AcctV3Inner::load_from_slice(buf);
+        let command = inner.command().unwrap();
+        let username = String::from("TODO");
+
+        AcctV3 {
+            inner: inner,
+            command: command,
+            username: username,
+        }
+    }
+
+    fn is_valid(&self) -> bool {
+        self.inner.is_valid()
     }
 }
 
@@ -57,13 +88,7 @@ fn expand_time(time: u16) -> u16 {
 
 fn is_file_valid_acct(file: &File) -> bool {
     file.metadata().unwrap()
-        .len() % mem::size_of::<AcctV3>() as u64 == 0
-}
-
-fn load_from_slice(buf: &[u8]) -> AcctV3 {
-    let acct: AcctV3 = deserialize(buf).unwrap();
-
-    acct
+        .len() % mem::size_of::<AcctV3Inner>() as u64 == 0
 }
 
 fn load_from_file(file: &mut File) -> Option<Vec<AcctV3>> {
@@ -71,7 +96,7 @@ fn load_from_file(file: &mut File) -> Option<Vec<AcctV3>> {
         return None;
     }
 
-    let size = mem::size_of::<AcctV3>();
+    let size = mem::size_of::<AcctV3Inner>();
     println!("Size: {}", size);
     let chunks = (file.metadata().unwrap().len() / size as u64) as usize;
     println!("Chunks: {}", chunks);
@@ -82,7 +107,7 @@ fn load_from_file(file: &mut File) -> Option<Vec<AcctV3>> {
 
     for chunk in (0..buf.len()).step_by(size) {
         println!("Chunk: {}", chunk);
-        let acct = load_from_slice(&buf[chunk..chunk+size]);
+        let acct = AcctV3::from_slice(&buf[chunk..chunk+size]);
         if acct.is_valid() {
             all.push(acct);
         }
@@ -106,9 +131,11 @@ fn main() {
                       .get_matches();
 
     let acct_file = matches.value_of("file").unwrap();
+    println!("file: {}", acct_file);
 
 
     let mut file = File::open(acct_file).unwrap();
+    println!("file: {:?}", file);
 
     /*
     let mut buf = [0u8; mem::size_of::<AcctV3>()];
@@ -122,6 +149,6 @@ fn main() {
 
     let accts = load_from_file(&mut file).unwrap();
     for acct in accts {
-        println!("{}", acct.command().unwrap());
+        println!("{}", acct.command);
     }
 }
