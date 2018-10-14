@@ -137,16 +137,6 @@ fn main() {
     let mut file = File::open(acct_file).unwrap();
     println!("file: {:?}", file);
 
-    /*
-    let mut buf = [0u8; mem::size_of::<AcctV3>()];
-    println!("{}", is_file_valid_acct(&file));
-    file.read_exact(&mut buf).unwrap();
-    println!("{:?}", matches);
-    let acct: AcctV3 = deserialize(&buf).unwrap();
-    println!("{:?}", acct);
-    println!("{:?}", acct.command());
-    */
-
     let accts = load_from_file(&mut file).unwrap();
     for acct in accts {
         println!("{}", acct.command);
