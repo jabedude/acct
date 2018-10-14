@@ -5,7 +5,7 @@ authors = ["Josh Abraham <sinisterpatrician@gmail.com>"]
 description = "Crate for reading data from acct(5) files"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/jabedude/acct"
-keywords = ["acct", "unix", "process accounting", "pacct", "logging"]
+keywords = ["acct", "unix", "process", "accounting", "pacct"]
 
 [lib]
 name = "acct"
