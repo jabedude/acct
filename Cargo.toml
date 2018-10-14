@@ -1,6 +1,6 @@
 [package]
 name = "acct"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Josh Abraham <sinisterpatrician@gmail.com>"]
 description = "Crate for reading data from acct(5) files"
 license = "MIT/Apache-2.0"
