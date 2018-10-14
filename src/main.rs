@@ -66,7 +66,11 @@ fn load_from_slice(buf: &[u8]) -> AcctV3 {
     acct
 }
 
-fn load_from_file(file: &mut File) -> Vec<AcctV3> {
+fn load_from_file(file: &mut File) -> Option<Vec<AcctV3>> {
+    if !is_file_valid_acct(&file) {
+        return None;
+    }
+
     let size = mem::size_of::<AcctV3>();
     println!("Size: {}", size);
     let chunks = (file.metadata().unwrap().len() / size as u64) as usize;
@@ -78,10 +82,13 @@ fn load_from_file(file: &mut File) -> Vec<AcctV3> {
 
     for chunk in (0..buf.len()).step_by(size) {
         println!("Chunk: {}", chunk);
-        all.push(load_from_slice(&buf[chunk..chunk+size]));
+        let acct = load_from_slice(&buf[chunk..chunk+size]);
+        if acct.is_valid() {
+            all.push(acct);
+        }
     }
 
-    all
+    Some(all)
 }
 
 fn main() {
@@ -113,7 +120,7 @@ fn main() {
     println!("{:?}", acct.command());
     */
 
-    let accts = load_from_file(&mut file);
+    let accts = load_from_file(&mut file).unwrap();
     for acct in accts {
         println!("{}", acct.command().unwrap());
     }
