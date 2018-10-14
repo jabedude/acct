@@ -6,13 +6,12 @@ extern crate serde_derive;
 extern crate bitflags;
 extern crate bincode;
 
-
 use bincode::deserialize;
 use std::fs::File;
 use std::io::Read;
+use std::mem;
 use std::string::FromUtf8Error;
 use std::string::String;
-use std::mem;
 
 const AFORK: u8 = 0x01;
 const ASU: u8 = 0x02;
@@ -116,8 +115,7 @@ fn expand_time(time: u16) -> u16 {
 }
 
 fn is_file_valid_acct(file: &File) -> bool {
-    file.metadata().unwrap()
-        .len() % mem::size_of::<AcctV3Inner>() as u64 == 0
+    file.metadata().unwrap().len() % mem::size_of::<AcctV3Inner>() as u64 == 0
 }
 
 pub fn load_from_file(file: &mut File) -> Option<Vec<AcctV3>> {
@@ -126,17 +124,13 @@ pub fn load_from_file(file: &mut File) -> Option<Vec<AcctV3>> {
     }
 
     let size = mem::size_of::<AcctV3Inner>();
-    println!("Size: {}", size);
     let chunks = (file.metadata().unwrap().len() / size as u64) as usize;
-    println!("Chunks: {}", chunks);
     let mut all: Vec<AcctV3> = Vec::new();
     let mut buf: Vec<u8> = Vec::new();
     file.read_to_end(&mut buf).unwrap();
-    println!("Buf len: {}", buf.len());
 
     for chunk in (0..buf.len()).step_by(size) {
-        println!("Chunk: {}", chunk);
-        let acct = AcctV3::from_slice(&buf[chunk..chunk+size]);
+        let acct = AcctV3::from_slice(&buf[chunk..chunk + size]);
         if acct.is_valid() {
             all.push(acct);
         }
