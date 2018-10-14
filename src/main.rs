@@ -1,3 +1,5 @@
+#![feature(iterator_step_by)]
+
 #[macro_use]
 extern crate serde_derive;
 extern crate clap;
@@ -8,6 +10,7 @@ use clap::{Arg, App};
 use bincode::deserialize;
 use std::fs::File;
 use std::io::Read;
+use std::io;
 use std::string::FromUtf8Error;
 use std::string::String;
 use std::mem;
@@ -57,6 +60,30 @@ fn is_file_valid_acct(file: &File) -> bool {
         .len() % mem::size_of::<AcctV3>() as u64 == 0
 }
 
+fn load_from_slice(buf: &[u8]) -> AcctV3 {
+    let acct: AcctV3 = deserialize(buf).unwrap();
+
+    acct
+}
+
+fn load_from_file(file: &mut File) -> Vec<AcctV3> {
+    let size = mem::size_of::<AcctV3>();
+    println!("Size: {}", size);
+    let chunks = (file.metadata().unwrap().len() / size as u64) as usize;
+    println!("Chunks: {}", chunks);
+    let mut all: Vec<AcctV3> = Vec::new();
+    let mut buf: Vec<u8> = Vec::new();
+    file.read_to_end(&mut buf).unwrap();
+    println!("Buf len: {}", buf.len());
+
+    for chunk in (0..chunks).step_by(size) {
+        println!("Chunk: {}", chunk);
+        all.push(load_from_slice(&buf[chunk..chunk+size]));
+    }
+
+    all
+}
+
 fn main() {
     let matches = App::new("acct-rs")
                       .version("0.1")
@@ -73,13 +100,21 @@ fn main() {
 
     let acct_file = matches.value_of("file").unwrap();
 
-    let mut buf = [0u8; mem::size_of::<AcctV3>()];
+
     let mut file = File::open(acct_file).unwrap();
+
+    /*
+    let mut buf = [0u8; mem::size_of::<AcctV3>()];
     println!("{}", is_file_valid_acct(&file));
     file.read_exact(&mut buf).unwrap();
     println!("{:?}", matches);
-
     let acct: AcctV3 = deserialize(&buf).unwrap();
     println!("{:?}", acct);
     println!("{:?}", acct.command());
+    */
+
+    let accts = load_from_file(&mut file);
+    for acct in accts {
+        println!("{}", acct.command().unwrap());
+    }
 }
