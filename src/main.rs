@@ -55,10 +55,10 @@ impl AcctV3Inner {
 }
 
 #[derive(Debug)]
-struct AcctV3 {
+pub struct AcctV3 {
     inner: AcctV3Inner,
-    username: String,
-    command: String,
+    pub username: String,
+    pub command: String,
 }
 
 impl AcctV3 {
