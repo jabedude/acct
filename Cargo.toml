@@ -3,6 +3,14 @@ name = "acct"
 version = "0.1.0"
 authors = ["Josh Abraham <sinisterpatrician@gmail.com>"]
 
+[lib]
+name = "acct"
+path = "src/lib.rs"
+
+[[bin]]
+name = "acct"
+path = "src/bin.rs"
+
 [dependencies]
 clap = "2.32.0"
 bincode = "1.0.1"
