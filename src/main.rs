@@ -76,7 +76,7 @@ fn load_from_file(file: &mut File) -> Vec<AcctV3> {
     file.read_to_end(&mut buf).unwrap();
     println!("Buf len: {}", buf.len());
 
-    for chunk in (0..chunks).step_by(size) {
+    for chunk in (0..buf.len()).step_by(size) {
         println!("Chunk: {}", chunk);
         all.push(load_from_slice(&buf[chunk..chunk+size]));
     }
