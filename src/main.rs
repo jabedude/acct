@@ -16,6 +16,11 @@ use std::string::FromUtf8Error;
 use std::string::String;
 use std::mem;
 
+const AFORK: u8 = 0x01;
+const ASU: u8 = 0x02;
+const ACORE: u8 = 0x08;
+const AXSIG: u8 = 0x10;
+
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct AcctV3Inner {
     ac_flag: u8,
@@ -86,6 +91,22 @@ impl AcctV3 {
 
     fn is_valid(&self) -> bool {
         self.inner.is_valid()
+    }
+
+    fn was_forked(&self) -> bool {
+        self.inner.ac_flag & AFORK == AFORK
+    }
+
+    fn was_super_user(&self) -> bool {
+        self.inner.ac_flag & ASU == ASU
+    }
+
+    fn was_core_dumped(&self) -> bool {
+        self.inner.ac_flag & ACORE == ACORE
+    }
+
+    fn was_killed(&self) -> bool {
+        self.inner.ac_flag & AXSIG == AXSIG
     }
 }
 
