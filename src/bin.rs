@@ -27,6 +27,6 @@ fn main() {
 
     let accts = load_from_file(&mut file).unwrap();
     for acct in accts {
-        println!("{}: {}", acct.command, acct.username);
+        println!("{}\t{}", acct.command, acct.username);
     }
 }

@@ -8,8 +8,6 @@
 
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate bitflags;
 extern crate bincode;
 extern crate users;
 
@@ -62,15 +60,6 @@ impl AcctV3Inner {
 
     fn is_valid(&self) -> bool {
         self.ac_version == 3
-    }
-}
-
-bitflags! {
-    struct Flags: u8 {
-        const AFORK = 0x01;
-        const ASU = 0x02;
-        const ACORE = 0x08;
-        const AXSIG = 0x10;
     }
 }
 
