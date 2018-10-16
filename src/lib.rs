@@ -63,7 +63,7 @@ impl AcctV3Inner {
     }
 }
 
-/// Represents a acct(5) v3 structure
+/// Represents a acct(5) v3 record structure
 ///
 /// see https://linux.die.net/man/5/acct
 #[derive(Debug)]
@@ -121,33 +121,46 @@ impl AcctV3 {
     }
 }
 
+/// Represents an acct(5) log file
+pub struct AcctFile {
+    /// Vector of acct records
+    pub records: Vec<AcctV3>,
+}
+
+impl AcctFile {
+    fn is_file_valid(file: &File) -> bool {
+        file.metadata().unwrap().len() % mem::size_of::<AcctV3Inner>() as u64 == 0
+    }
+
+    /// Construct a new AcctFile struct from a &std::fs::File
+    pub fn load_from_file(file: &mut File) -> Option<AcctFile> {
+        if !AcctFile::is_file_valid(&file) {
+            return None;
+        }
+
+        let size = mem::size_of::<AcctV3Inner>();
+        let mut all: Vec<AcctV3> = Vec::new();
+        let mut buf: Vec<u8> = Vec::new();
+        file.read_to_end(&mut buf).unwrap();
+
+        for chunk in (0..buf.len()).step_by(size) {
+            let acct = AcctV3::from_slice(&buf[chunk..chunk + size]);
+            if acct.is_valid() {
+                all.push(acct);
+            }
+        }
+
+        Some(
+            AcctFile {
+                records: all,
+            }
+        )
+    }
+}
+
 // TODO: maybe use #[inline] here?
 fn expand_time(time: u16) -> u16 {
     let ret: u16 = (time & 0x1fff) << (((time >> 13) & 0x7) * 3);
 
     ret
-}
-
-fn is_file_valid_acct(file: &File) -> bool {
-    file.metadata().unwrap().len() % mem::size_of::<AcctV3Inner>() as u64 == 0
-}
-
-pub fn load_from_file(file: &mut File) -> Option<Vec<AcctV3>> {
-    if !is_file_valid_acct(&file) {
-        return None;
-    }
-
-    let size = mem::size_of::<AcctV3Inner>();
-    let mut all: Vec<AcctV3> = Vec::new();
-    let mut buf: Vec<u8> = Vec::new();
-    file.read_to_end(&mut buf).unwrap();
-
-    for chunk in (0..buf.len()).step_by(size) {
-        let acct = AcctV3::from_slice(&buf[chunk..chunk + size]);
-        if acct.is_valid() {
-            all.push(acct);
-        }
-    }
-
-    Some(all)
 }

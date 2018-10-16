@@ -1,7 +1,7 @@
 extern crate acct;
 extern crate clap;
 
-use acct::load_from_file;
+use acct::AcctFile;
 use clap::{App, Arg};
 use std::fs::File;
 
@@ -25,8 +25,8 @@ fn main() {
 
     let mut file = File::open(acct_file).unwrap();
 
-    let accts = load_from_file(&mut file).unwrap();
-    for acct in accts {
+    let acct_file = AcctFile::load_from_file(&mut file).unwrap();
+    for acct in acct_file.records {
         println!("{}\t{}", acct.command, acct.username);
     }
 }
