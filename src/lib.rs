@@ -11,7 +11,7 @@ extern crate serde_derive;
 extern crate bincode;
 extern crate users;
 
-use bincode::deserialize;
+use bincode::{serialize, deserialize};
 use std::fs::File;
 use std::io::Read;
 use std::mem;
@@ -155,6 +155,16 @@ impl AcctFile {
                 records: all,
             }
         )
+    }
+
+    pub fn into_bytes(self) -> Vec<u8> {
+        let mut all_bytes: Vec<u8> = Vec::new();
+        for acct in self.records {
+            let mut buf = serialize(&acct.inner).unwrap();
+            all_bytes.append(&mut buf);
+        }
+
+        all_bytes
     }
 }
 
