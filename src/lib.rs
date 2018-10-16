@@ -157,6 +157,8 @@ impl AcctFile {
         )
     }
 
+    /// Convert the AcctFile object into bytes for writing back into file
+    /// Consumes the object.
     pub fn into_bytes(self) -> Vec<u8> {
         let mut all_bytes: Vec<u8> = Vec::new();
         for acct in self.records {
