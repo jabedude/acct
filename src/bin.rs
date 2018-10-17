@@ -28,7 +28,7 @@ fn main() {
 
     let acct_file = AcctFile::load_from_file(&mut file).unwrap();
     for acct in &acct_file.records {
-        println!("{}\t{}", acct.command, acct.username);
+        println!("{}\t{}\t{:?}", acct.command, acct.username, acct.creation_time);
     }
 
     let mut out = File::create("optfile").unwrap();

@@ -17,6 +17,7 @@ use std::io::Read;
 use std::mem;
 use std::string::FromUtf8Error;
 use std::string::String;
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
 use users::get_user_by_uid;
 
 const AFORK: u8 = 0x01;
@@ -73,6 +74,8 @@ pub struct AcctV3 {
     pub username: String,
     /// The command name of executed command
     pub command: String,
+    /// The time the command was created
+    pub creation_time: SystemTime,
 }
 
 impl AcctV3 {
@@ -86,11 +89,14 @@ impl AcctV3 {
             .to_os_string()
             .into_string()
             .unwrap();
+        let ctime = inner.ac_btime as u64;
+        let creation_time = UNIX_EPOCH + Duration::from_secs(ctime);
 
         AcctV3 {
             inner: inner,
             command: command,
             username: username,
+            creation_time: creation_time,
         }
     }
 
