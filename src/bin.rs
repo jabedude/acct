@@ -1,8 +1,11 @@
 extern crate acct;
+extern crate chrono;
 extern crate clap;
 
 use acct::AcctFile;
 use clap::{App, Arg};
+use chrono::prelude::DateTime;
+use chrono::{Utc};
 use std::fs::File;
 use std::io::Write;
 
@@ -28,7 +31,9 @@ fn main() {
 
     let acct_file = AcctFile::load_from_file(&mut file).unwrap();
     for acct in &acct_file.records {
-        println!("{}\t{}\t{:?}", acct.command, acct.username, acct.creation_time);
+        let datetime = DateTime::<Utc>::from(acct.creation_time);
+        let timestamp_str = datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string();
+        println!("{}\t{}\t{:?}", acct.command, acct.username, timestamp_str);
     }
 
     let mut out = File::create("optfile").unwrap();
