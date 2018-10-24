@@ -1,9 +1,13 @@
 extern crate acct;
+extern crate chrono;
 extern crate clap;
 
-use acct::load_from_file;
+use acct::AcctFile;
 use clap::{App, Arg};
+use chrono::prelude::DateTime;
+use chrono::{Utc};
 use std::fs::File;
+use std::io::Write;
 
 fn main() {
     let matches = App::new("acct-rs")
@@ -25,8 +29,14 @@ fn main() {
 
     let mut file = File::open(acct_file).unwrap();
 
-    let accts = load_from_file(&mut file).unwrap();
-    for acct in accts {
-        println!("{}\t{}", acct.command, acct.username);
+    let acct_file = AcctFile::load_from_file(&mut file).unwrap();
+    for acct in &acct_file.records {
+        let datetime = DateTime::<Utc>::from(acct.creation_time);
+        let timestamp_str = datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string();
+        println!("{}\t{}\t{:?}", acct.command, acct.username, timestamp_str);
     }
+
+    let mut out = File::create("optfile").unwrap();
+    let bytes = acct_file.into_bytes();
+    out.write_all(&bytes);
 }

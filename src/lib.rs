@@ -11,12 +11,13 @@ extern crate serde_derive;
 extern crate bincode;
 extern crate users;
 
-use bincode::deserialize;
+use bincode::{serialize, deserialize};
 use std::fs::File;
 use std::io::Read;
 use std::mem;
 use std::string::FromUtf8Error;
 use std::string::String;
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
 use users::get_user_by_uid;
 
 const AFORK: u8 = 0x01;
@@ -63,7 +64,7 @@ impl AcctV3Inner {
     }
 }
 
-/// Represents a acct(5) v3 structure
+/// Represents a acct(5) v3 record structure
 ///
 /// see https://linux.die.net/man/5/acct
 #[derive(Debug)]
@@ -73,6 +74,8 @@ pub struct AcctV3 {
     pub username: String,
     /// The command name of executed command
     pub command: String,
+    /// The time the command was created
+    pub creation_time: SystemTime,
 }
 
 impl AcctV3 {
@@ -86,11 +89,14 @@ impl AcctV3 {
             .to_os_string()
             .into_string()
             .unwrap();
+        let ctime = inner.ac_btime as u64;
+        let creation_time = UNIX_EPOCH + Duration::from_secs(ctime);
 
         AcctV3 {
             inner: inner,
             command: command,
             username: username,
+            creation_time: creation_time,
         }
     }
 
@@ -121,33 +127,58 @@ impl AcctV3 {
     }
 }
 
+/// Represents an acct(5) log file
+pub struct AcctFile {
+    /// Vector of acct records
+    pub records: Vec<AcctV3>,
+}
+
+impl AcctFile {
+    fn is_file_valid(file: &File) -> bool {
+        file.metadata().unwrap().len() % mem::size_of::<AcctV3Inner>() as u64 == 0
+    }
+
+    /// Construct a new AcctFile struct from a &std::fs::File
+    pub fn load_from_file(file: &mut File) -> Option<AcctFile> {
+        if !AcctFile::is_file_valid(&file) {
+            return None;
+        }
+
+        let size = mem::size_of::<AcctV3Inner>();
+        let mut all: Vec<AcctV3> = Vec::new();
+        let mut buf: Vec<u8> = Vec::new();
+        file.read_to_end(&mut buf).unwrap();
+
+        for chunk in (0..buf.len()).step_by(size) {
+            let acct = AcctV3::from_slice(&buf[chunk..chunk + size]);
+            if acct.is_valid() {
+                all.push(acct);
+            }
+        }
+
+        Some(
+            AcctFile {
+                records: all,
+            }
+        )
+    }
+
+    /// Convert the AcctFile object into bytes for writing back into file
+    /// Consumes the object.
+    pub fn into_bytes(self) -> Vec<u8> {
+        let mut all_bytes: Vec<u8> = Vec::new();
+        for acct in self.records {
+            let mut buf = serialize(&acct.inner).unwrap();
+            all_bytes.append(&mut buf);
+        }
+
+        all_bytes
+    }
+}
+
 // TODO: maybe use #[inline] here?
 fn expand_time(time: u16) -> u16 {
     let ret: u16 = (time & 0x1fff) << (((time >> 13) & 0x7) * 3);
 
     ret
-}
-
-fn is_file_valid_acct(file: &File) -> bool {
-    file.metadata().unwrap().len() % mem::size_of::<AcctV3Inner>() as u64 == 0
-}
-
-pub fn load_from_file(file: &mut File) -> Option<Vec<AcctV3>> {
-    if !is_file_valid_acct(&file) {
-        return None;
-    }
-
-    let size = mem::size_of::<AcctV3Inner>();
-    let mut all: Vec<AcctV3> = Vec::new();
-    let mut buf: Vec<u8> = Vec::new();
-    file.read_to_end(&mut buf).unwrap();
-
-    for chunk in (0..buf.len()).step_by(size) {
-        let acct = AcctV3::from_slice(&buf[chunk..chunk + size]);
-        if acct.is_valid() {
-            all.push(acct);
-        }
-    }
-
-    Some(all)
 }
