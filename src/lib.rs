@@ -12,7 +12,6 @@ extern crate bincode;
 extern crate users;
 
 use bincode::{serialize, deserialize};
-use std::fs::File;
 use std::io::Read;
 use std::mem;
 use std::string::FromUtf8Error;
