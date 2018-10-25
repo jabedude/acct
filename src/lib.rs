@@ -134,20 +134,20 @@ pub struct AcctFile {
 }
 
 impl AcctFile {
-    fn is_file_valid(file: &File) -> bool {
-        file.metadata().unwrap().len() % mem::size_of::<AcctV3Inner>() as u64 == 0
+    fn is_valid(buf: &[u8]) -> bool {
+        buf.len() % mem::size_of::<AcctV3Inner>() == 0
     }
 
-    /// Construct a new AcctFile struct from a &std::fs::File
-    pub fn load_from_file(file: &mut File) -> Option<AcctFile> {
-        if !AcctFile::is_file_valid(&file) {
-            return None;
-        }
-
+    /// Construct a new AcctFile struct from a Reader
+    pub fn load_from_reader<R: Read + ?Sized>(reader: &mut R) -> Option<AcctFile> {
         let size = mem::size_of::<AcctV3Inner>();
         let mut all: Vec<AcctV3> = Vec::new();
         let mut buf: Vec<u8> = Vec::new();
-        file.read_to_end(&mut buf).unwrap();
+        reader.read_to_end(&mut buf).unwrap();
+
+        if !AcctFile::is_valid(&buf) {
+            return None;
+        }
 
         for chunk in (0..buf.len()).step_by(size) {
             let acct = AcctV3::from_slice(&buf[chunk..chunk + size]);
