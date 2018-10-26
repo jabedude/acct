@@ -99,8 +99,6 @@ impl AcctV3 {
         }
     }
 
-    // TODO: write back to a new file
-
     fn is_valid(&self) -> bool {
         self.inner.is_valid()
     }
@@ -126,7 +124,8 @@ impl AcctV3 {
     }
 }
 
-/// Represents an acct(5) log file
+/// Represents an acct(5) log file.
+/// Iterate over records field to examine contents
 pub struct AcctFile {
     /// Vector of acct records
     pub records: Vec<AcctV3>,
@@ -162,7 +161,7 @@ impl AcctFile {
         )
     }
 
-    /// Convert the AcctFile object into bytes for writing back into file
+    /// Convert the AcctFile object into bytes for writing back into file.
     /// Consumes the object.
     pub fn into_bytes(self) -> Vec<u8> {
         let mut all_bytes: Vec<u8> = Vec::new();
@@ -175,7 +174,6 @@ impl AcctFile {
     }
 }
 
-// TODO: maybe use #[inline] here?
 fn expand_time(time: u16) -> u16 {
     let ret: u16 = (time & 0x1fff) << (((time >> 13) & 0x7) * 3);
 
