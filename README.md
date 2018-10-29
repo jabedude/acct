@@ -8,7 +8,7 @@ To install, add this line to your Cargo.toml:
 
 ```toml
 [dependencies]
-acct = "0.2.0"
+acct = "0.4.0"
 ```
 
 ## Documentation
