@@ -29,7 +29,7 @@ fn main() {
 
     let mut file = File::open(acct_file).unwrap();
 
-    let acct_file = AcctFile::load_from_reader(&mut file).unwrap();
+    let acct_file = AcctFile::new(&mut file).unwrap();
     for acct in &acct_file.records {
         let datetime = DateTime::<Utc>::from(acct.creation_time);
         let timestamp_str = datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string();

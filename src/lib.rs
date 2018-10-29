@@ -137,7 +137,7 @@ impl AcctFile {
     }
 
     /// Construct a new AcctFile struct from a Reader
-    pub fn load_from_reader<R: Read + ?Sized>(reader: &mut R) -> Option<AcctFile> {
+    pub fn new<R: Read + ?Sized>(reader: &mut R) -> Option<AcctFile> {
         let size = mem::size_of::<AcctV3Inner>();
         let mut all: Vec<AcctV3> = Vec::new();
         let mut buf: Vec<u8> = Vec::new();
