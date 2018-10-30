@@ -83,10 +83,10 @@ struct AcctV3Inner {
 }
 
 impl AcctV3Inner {
-    fn load_from_slice(buf: &[u8]) -> AcctV3Inner {
-        let acct: AcctV3Inner = deserialize(buf).unwrap();
+    fn load_from_slice(buf: &[u8]) -> Result<AcctV3Inner> {
+        let acct: AcctV3Inner = deserialize(buf)?;
 
-        acct
+        Ok(acct)
     }
 
     fn command(&self) -> Result<String> {
@@ -116,7 +116,7 @@ pub struct AcctV3 {
 impl AcctV3 {
     /// Constructs a AcctV3 object from a byte slice
     pub fn from_slice(buf: &[u8]) -> Result<AcctV3> {
-        let inner = AcctV3Inner::load_from_slice(buf);
+        let inner = AcctV3Inner::load_from_slice(buf)?;
         let command = inner.command()?;
         let username = get_user_by_uid(inner.ac_uid).ok_or(Error::Er)?;
         let username = username.name()
@@ -176,7 +176,6 @@ impl AcctFile {
         let mut all: Vec<AcctV3> = Vec::new();
         let mut buf: Vec<u8> = Vec::new();
         reader.read_to_end(&mut buf)?;
-        //reader.read_to_end(&mut buf).unwrap();
 
         if !AcctFile::is_valid(&buf) {
             return Err(Error::Er);
