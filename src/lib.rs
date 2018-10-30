@@ -13,7 +13,7 @@ extern crate users;
 
 use bincode::{serialize, deserialize};
 use std::io::Read;
-use std::mem;
+use std::{fmt, mem, result};
 use std::string::FromUtf8Error;
 use std::string::String;
 use std::time::{SystemTime, UNIX_EPOCH, Duration};
@@ -23,6 +23,27 @@ const AFORK: u8 = 0x01;
 const ASU: u8 = 0x02;
 const ACORE: u8 = 0x08;
 const AXSIG: u8 = 0x10;
+
+pub type Result<T> = result::Result<T, Error>;
+
+#[derive(Debug)]
+pub enum Error {
+    InvalidFile,
+    Er,
+}
+
+impl From<std::string::FromUtf8Error> for Error {
+    fn from(_: std::string::FromUtf8Error) -> Error { Error::Er }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::InvalidFile => write!(f, "Invalid file"),
+            Error::Er => write!(f, "Invalid UTF-8 string"),
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct AcctV3Inner {
@@ -54,8 +75,9 @@ impl AcctV3Inner {
         acct
     }
 
-    fn command(&self) -> Result<String, FromUtf8Error> {
-        String::from_utf8(self.ac_comm.to_vec())
+    fn command(&self) -> Result<String> {
+        let res = String::from_utf8(self.ac_comm.to_vec())?;
+        Ok(res)
     }
 
     fn is_valid(&self) -> bool {
