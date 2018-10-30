@@ -29,6 +29,7 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     InvalidFile,
+    BadReader,
     Er,
 }
 
@@ -36,11 +37,24 @@ impl From<std::string::FromUtf8Error> for Error {
     fn from(_: std::string::FromUtf8Error) -> Error { Error::Er }
 }
 
+impl From<std::ffi::OsString> for Error {
+    fn from(_: std::ffi::OsString) -> Error { Error::Er }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(_: std::io::Error) -> Error { Error::BadReader }
+}
+
+impl From<std::boxed::Box<bincode::ErrorKind>> for Error {
+    fn from(_: std::boxed::Box<bincode::ErrorKind>) -> Error { Error::BadReader }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::InvalidFile => write!(f, "Invalid file"),
-            Error::Er => write!(f, "Invalid UTF-8 string"),
+            Error::BadReader => write!(f, "Invalid reader"),
+            Error::Er => write!(f, "Invalid data"),
         }
     }
 }
@@ -101,24 +115,22 @@ pub struct AcctV3 {
 
 impl AcctV3 {
     /// Constructs a AcctV3 object from a byte slice
-    pub fn from_slice(buf: &[u8]) -> AcctV3 {
+    pub fn from_slice(buf: &[u8]) -> Result<AcctV3> {
         let inner = AcctV3Inner::load_from_slice(buf);
-        let command = inner.command().unwrap();
-        let username = get_user_by_uid(inner.ac_uid)
-            .unwrap()
-            .name()
+        let command = inner.command()?;
+        let username = get_user_by_uid(inner.ac_uid).ok_or(Error::Er)?;
+        let username = username.name()
             .to_os_string()
-            .into_string()
-            .unwrap();
+            .into_string()?;
         let ctime = inner.ac_btime as u64;
         let creation_time = UNIX_EPOCH + Duration::from_secs(ctime);
 
-        AcctV3 {
+        Ok(AcctV3 {
             inner: inner,
             command: command,
             username: username,
             creation_time: creation_time,
-        }
+        })
     }
 
     fn is_valid(&self) -> bool {
@@ -159,24 +171,25 @@ impl AcctFile {
     }
 
     /// Construct a new AcctFile struct from a Reader
-    pub fn new<R: Read + ?Sized>(reader: &mut R) -> Option<AcctFile> {
+    pub fn new<R: Read + ?Sized>(reader: &mut R) -> Result<AcctFile> {
         let size = mem::size_of::<AcctV3Inner>();
         let mut all: Vec<AcctV3> = Vec::new();
         let mut buf: Vec<u8> = Vec::new();
-        reader.read_to_end(&mut buf).unwrap();
+        reader.read_to_end(&mut buf)?;
+        //reader.read_to_end(&mut buf).unwrap();
 
         if !AcctFile::is_valid(&buf) {
-            return None;
+            return Err(Error::Er);
         }
 
         for chunk in (0..buf.len()).step_by(size) {
-            let acct = AcctV3::from_slice(&buf[chunk..chunk + size]);
+            let acct = AcctV3::from_slice(&buf[chunk..chunk + size])?;
             if acct.is_valid() {
                 all.push(acct);
             }
         }
 
-        Some(
+        Ok(
             AcctFile {
                 records: all,
             }
@@ -185,14 +198,14 @@ impl AcctFile {
 
     /// Convert the AcctFile object into bytes for writing back into file.
     /// Consumes the object.
-    pub fn into_bytes(self) -> Vec<u8> {
+    pub fn into_bytes(self) -> Result<Vec<u8>> {
         let mut all_bytes: Vec<u8> = Vec::new();
         for acct in self.records {
-            let mut buf = serialize(&acct.inner).unwrap();
+            let mut buf = serialize(&acct.inner)?;
             all_bytes.append(&mut buf);
         }
 
-        all_bytes
+        Ok(all_bytes)
     }
 }
 
