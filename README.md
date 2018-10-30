@@ -8,7 +8,7 @@ To install, add this line to your Cargo.toml:
 
 ```toml
 [dependencies]
-acct = "0.4.0"
+acct = "0.5.0"
 ```
 
 ## Example
@@ -23,7 +23,7 @@ acct = "0.4.0"
     }
 
     let mut out = File::create("optfile").unwrap();
-    let bytes = acct_file.into_bytes();
+    let bytes = acct_file.into_bytes().unwrap();
     out.write_all(&bytes);
 ```
 

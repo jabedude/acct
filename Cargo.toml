@@ -1,11 +1,11 @@
 [package]
 name = "acct"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Josh Abraham <sinisterpatrician@gmail.com>"]
 description = "Crate for reading data from acct(5) files"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/jabedude/acct"
-documentation = "https://docs.rs/acct/0.1.0/acct/"
+documentation = "https://docs.rs/acct/0.5.0/acct/"
 keywords = ["acct", "unix", "process", "accounting", "pacct"]
 
 [lib]
