@@ -9,11 +9,11 @@ extern crate serde_derive;
 extern crate bincode;
 extern crate users;
 
-use bincode::{serialize, deserialize};
+use bincode::{deserialize, serialize};
 use std::io::Read;
-use std::{fmt, mem, result};
 use std::string::String;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::{fmt, mem, result};
 use users::get_user_by_uid;
 
 const AFORK: u8 = 0x01;
@@ -31,19 +31,27 @@ pub enum Error {
 }
 
 impl From<std::string::FromUtf8Error> for Error {
-    fn from(_: std::string::FromUtf8Error) -> Error { Error::Er }
+    fn from(_: std::string::FromUtf8Error) -> Error {
+        Error::Er
+    }
 }
 
 impl From<std::ffi::OsString> for Error {
-    fn from(_: std::ffi::OsString) -> Error { Error::Er }
+    fn from(_: std::ffi::OsString) -> Error {
+        Error::Er
+    }
 }
 
 impl From<std::io::Error> for Error {
-    fn from(_: std::io::Error) -> Error { Error::BadReader }
+    fn from(_: std::io::Error) -> Error {
+        Error::BadReader
+    }
 }
 
 impl From<std::boxed::Box<bincode::ErrorKind>> for Error {
-    fn from(_: std::boxed::Box<bincode::ErrorKind>) -> Error { Error::BadReader }
+    fn from(_: std::boxed::Box<bincode::ErrorKind>) -> Error {
+        Error::BadReader
+    }
 }
 
 impl fmt::Display for Error {
@@ -116,9 +124,7 @@ impl AcctV3 {
         let inner = AcctV3Inner::load_from_slice(buf)?;
         let command = inner.command()?;
         let username = get_user_by_uid(inner.ac_uid).ok_or(Error::Er)?;
-        let username = username.name()
-            .to_os_string()
-            .into_string()?;
+        let username = username.name().to_os_string().into_string()?;
         let ctime = inner.ac_btime as u64;
         let creation_time = UNIX_EPOCH + Duration::from_secs(ctime);
 
@@ -185,11 +191,7 @@ impl AcctFile {
             }
         }
 
-        Ok(
-            AcctFile {
-                records: all,
-            }
-        )
+        Ok(AcctFile { records: all })
     }
 
     /// Convert the AcctFile object into bytes for writing back into file.
