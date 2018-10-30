@@ -38,5 +38,5 @@ fn main() {
 
     let mut out = File::create("optfile").unwrap();
     let bytes = acct_file.into_bytes().unwrap();
-    out.write_all(&bytes);
+    out.write_all(&bytes).unwrap();
 }
