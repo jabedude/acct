@@ -1,3 +1,5 @@
+![acct title](https://github.com/jabedude/acct/raw/master/acct.png)
+
 # Rust acct - parse acct(5) files
 
 [![Crates.io](https://img.shields.io/crates/v/acct.svg)](https://crates.io/crates/acct)
