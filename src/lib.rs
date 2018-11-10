@@ -11,6 +11,7 @@ extern crate users;
 
 use bincode::{deserialize, serialize};
 use std::io::Read;
+use std::str;
 use std::string::String;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::{fmt, mem, result};
@@ -30,8 +31,8 @@ pub enum Error {
     Er,
 }
 
-impl From<std::string::FromUtf8Error> for Error {
-    fn from(_: std::string::FromUtf8Error) -> Error {
+impl From<std::str::Utf8Error> for Error {
+    fn from(_: std::str::Utf8Error) -> Error {
         Error::Er
     }
 }
@@ -94,8 +95,9 @@ impl AcctV3Inner {
         Ok(acct)
     }
 
-    fn command(&self) -> Result<String> {
-        let res = String::from_utf8(self.ac_comm.to_vec())?;
+    fn command(&self) -> Result<&str> {
+        //let res = str::from_utf8(self.ac_comm.to_vec())?;
+        let res = str::from_utf8(&self.ac_comm)?;
         Ok(res)
     }
 
@@ -108,19 +110,19 @@ impl AcctV3Inner {
 ///
 /// see https://linux.die.net/man/5/acct
 #[derive(Debug)]
-pub struct AcctV3 {
+pub struct AcctV3<'a> {
     inner: AcctV3Inner,
     /// The accounting username
     pub username: String,
     /// The command name of executed command
-    pub command: String,
+    pub command: & 'a str,
     /// The time the command was created
     pub creation_time: SystemTime,
 }
 
-impl AcctV3 {
+impl <'a>AcctV3<'a> {
     /// Constructs a AcctV3 object from a byte slice
-    pub fn from_slice(buf: &[u8]) -> Result<AcctV3> {
+    pub fn from_slice(buf: & 'a [u8]) -> Result<AcctV3> {
         let inner = AcctV3Inner::load_from_slice(buf)?;
         let command = inner.command()?;
         let username = get_user_by_uid(inner.ac_uid).ok_or(Error::Er)?;
@@ -163,12 +165,12 @@ impl AcctV3 {
 
 /// Represents an acct(5) log file.
 /// Iterate over records field to examine contents
-pub struct AcctFile {
+pub struct AcctFile<'a> {
     /// Vector of acct records
-    pub records: Vec<AcctV3>,
+    pub records: Vec<AcctV3<'a>>,
 }
 
-impl AcctFile {
+impl <'a>AcctFile<'a> {
     fn is_valid(buf: &[u8]) -> bool {
         buf.len() % mem::size_of::<AcctV3Inner>() == 0
     }
