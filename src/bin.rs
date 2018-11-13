@@ -35,7 +35,7 @@ fn main() {
         let timestamp_str = datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string();
         println!(
             "{}\t{}\t{:?}\tSU:{}",
-            acct.command,
+            acct.command().unwrap(),
             acct.username,
             timestamp_str,
             acct.was_super_user()

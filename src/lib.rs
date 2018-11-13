@@ -110,21 +110,18 @@ impl AcctV3Inner {
 ///
 /// see https://linux.die.net/man/5/acct
 #[derive(Debug)]
-pub struct AcctV3<'a> {
+pub struct AcctV3 {
     inner: AcctV3Inner,
     /// The accounting username
     pub username: String,
-    /// The command name of executed command
-    pub command: & 'a str,
     /// The time the command was created
     pub creation_time: SystemTime,
 }
 
-impl <'a>AcctV3<'a> {
+impl AcctV3 {
     /// Constructs a AcctV3 object from a byte slice
-    pub fn from_slice(buf: & 'a [u8]) -> Result<AcctV3> {
+    pub fn from_slice(buf: &[u8]) -> Result<AcctV3> {
         let inner = AcctV3Inner::load_from_slice(buf)?;
-        let command = inner.command()?;
         let username = get_user_by_uid(inner.ac_uid).ok_or(Error::Er)?;
         let username = username.name().to_os_string().into_string()?;
         let ctime = inner.ac_btime as u64;
@@ -132,10 +129,14 @@ impl <'a>AcctV3<'a> {
 
         Ok(AcctV3 {
             inner: inner,
-            command: command,
             username: username,
             creation_time: creation_time,
         })
+    }
+
+    pub fn command(&self) -> Result<&str> {
+        let res = str::from_utf8(&self.inner.ac_comm)?;
+        Ok(res)
     }
 
     fn is_valid(&self) -> bool {
@@ -165,12 +166,12 @@ impl <'a>AcctV3<'a> {
 
 /// Represents an acct(5) log file.
 /// Iterate over records field to examine contents
-pub struct AcctFile<'a> {
+pub struct AcctFile {
     /// Vector of acct records
-    pub records: Vec<AcctV3<'a>>,
+    pub records: Vec<AcctV3>,
 }
 
-impl <'a>AcctFile<'a> {
+impl AcctFile {
     fn is_valid(buf: &[u8]) -> bool {
         buf.len() % mem::size_of::<AcctV3Inner>() == 0
     }
