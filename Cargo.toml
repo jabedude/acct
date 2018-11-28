@@ -17,9 +17,9 @@ name = "acct"
 path = "src/bin.rs"
 
 [dependencies]
+libc = "0.2"
 clap = "2.32.0"
 bincode = "1.0.1"
 serde = "1.0.79"
 serde_derive = "1.0.79"
-users = "0.8.0"
 chrono = "0.4.6"

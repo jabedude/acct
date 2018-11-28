@@ -7,14 +7,15 @@
 #[macro_use]
 extern crate serde_derive;
 extern crate bincode;
-extern crate users;
+extern crate libc;
 
 use bincode::{deserialize, serialize};
+use libc::{getpwuid, passwd};
+use std::ffi::CStr;
 use std::io::Read;
 use std::string::String;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::{fmt, mem, result};
-use users::get_user_by_uid;
 
 const AFORK: u8 = 0x01;
 const ASU: u8 = 0x02;
@@ -123,8 +124,10 @@ impl AcctV3 {
     pub fn from_slice(buf: &[u8]) -> Result<AcctV3> {
         let inner = AcctV3Inner::load_from_slice(buf)?;
         let command = inner.command()?;
-        let username = get_user_by_uid(inner.ac_uid).ok_or(Error::Er)?;
-        let username = username.name().to_os_string().into_string()?;
+        let pw: passwd = unsafe { *getpwuid(inner.ac_uid) };
+        let username = unsafe { CStr::from_ptr(pw.pw_name) };
+        let username = username.to_str().unwrap().to_string();
+
         let ctime = inner.ac_btime as u64;
         let creation_time = UNIX_EPOCH + Duration::from_secs(ctime);
 
