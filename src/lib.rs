@@ -16,6 +16,7 @@ use std::io::Read;
 use std::string::String;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::{fmt, mem, result};
+use std::ops::Deref;
 
 const AFORK: u8 = 0x01;
 const ASU: u8 = 0x02;
@@ -166,10 +167,9 @@ impl AcctV3 {
 }
 
 /// Represents an acct(5) log file.
-/// Iterate over records field to examine contents
 pub struct AcctFile {
     /// Vector of acct records
-    pub records: Vec<AcctV3>,
+    records: Vec<AcctV3>,
 }
 
 impl AcctFile {
@@ -208,6 +208,14 @@ impl AcctFile {
         }
 
         Ok(all_bytes)
+    }
+}
+
+impl Deref for AcctFile {
+    type Target = Vec<AcctV3>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.records
     }
 }
 
