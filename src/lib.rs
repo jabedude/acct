@@ -124,6 +124,7 @@ impl AcctV3 {
     pub fn from_slice(buf: &[u8]) -> Result<AcctV3> {
         let inner = AcctV3Inner::load_from_slice(buf)?;
         let command = inner.command()?;
+        // Safe because AcctV3Inner::load_from_slice() guarantees valid string
         let pw: passwd = unsafe { *getpwuid(inner.ac_uid) };
         let username = unsafe { CStr::from_ptr(pw.pw_name) };
         let username = username.to_str().unwrap().to_string();
