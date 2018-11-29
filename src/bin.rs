@@ -7,7 +7,6 @@ use chrono::prelude::DateTime;
 use chrono::Utc;
 use clap::{App, Arg};
 use std::fs::File;
-use std::io::Write;
 
 fn main() {
     let matches = App::new("acct-rs")
@@ -30,7 +29,7 @@ fn main() {
     let mut file = File::open(acct_file).unwrap();
 
     let acct_file = AcctFile::new(&mut file).unwrap();
-    for acct in &acct_file.records {
+    for acct in acct_file.iter() {
         let datetime = DateTime::<Utc>::from(acct.creation_time);
         let timestamp_str = datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string();
         println!(
@@ -41,8 +40,4 @@ fn main() {
             acct.was_super_user()
         );
     }
-
-    let mut out = File::create("optfile").unwrap();
-    let bytes = acct_file.into_bytes().unwrap();
-    out.write_all(&bytes).unwrap();
 }
