@@ -10,7 +10,7 @@ To install, add this line to your Cargo.toml:
 
 ```toml
 [dependencies]
-acct = "0.5.0"
+acct = "0.6.0"
 ```
 
 ## Example
@@ -23,10 +23,6 @@ acct = "0.5.0"
         let timestamp_str = datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string();
         println!("{}\t{}\t{:?}\tSU:{}", acct.command, acct.username, timestamp_str, acct.was_super_user());
     }
-
-    let mut out = File::create("optfile").unwrap();
-    let bytes = acct_file.into_bytes().unwrap();
-    out.write_all(&bytes);
 ```
 
 ## Documentation
