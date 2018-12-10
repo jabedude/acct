@@ -1,7 +1,3 @@
-extern crate acct;
-extern crate chrono;
-extern crate clap;
-
 use acct::AcctFile;
 use chrono::prelude::DateTime;
 use chrono::Utc;

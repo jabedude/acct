@@ -7,6 +7,7 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/jabedude/acct"
 documentation = "https://docs.rs/acct/0.6.0/acct/"
 keywords = ["acct", "unix", "process", "accounting", "pacct"]
+edition = "2018"
 
 [lib]
 name = "acct"

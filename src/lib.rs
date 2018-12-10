@@ -6,8 +6,8 @@
 
 #[macro_use]
 extern crate serde_derive;
-extern crate bincode;
-extern crate libc;
+use bincode;
+
 
 use bincode::{deserialize, serialize};
 use libc::{getpwuid, passwd};
@@ -57,7 +57,7 @@ impl From<std::boxed::Box<bincode::ErrorKind>> for Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Error::InvalidFile => write!(f, "Invalid file"),
             Error::BadReader => write!(f, "Invalid reader"),
